@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Generador de Código de Barras</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="funcion.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script><!-- Script para mostrar el código de barras -->
+</head>
+<body>
+<div  class="formulario">
+    <h1>Generador de Código de Barras</h1>
+    <form action="guardar.php" method="post"  name="form">
+        
+        <label for="nombre">Nombre del estudiante:</label>
+        <input type="text" id="nombre" name="nombre" required>
+        <br>
+        <label for="codigo">Código del producto</label>
+        <input type="text" id="codigo" name="codigo" required>
+        <br>
+        <button type="submit" id="enviar" class="enviar">Generar Código de Barras</button>
+        <script>
+    $(document).on('click', '#enviar', function enviar(event) {  // Usa el ID o clase del botón
+        event.preventDefault();
+        
+        // Obtenemos los datos del formulario
+        const nombre = $("#nombre").val();
+        const codigo = $("#codigo").val();
+
+        // Verificamos que ambos campos tengan valores
+        if (nombre && codigo) {
+            // Genera el código de barras en un canvas
+            const canvas = document.createElement("canvas");
+            JsBarcode(canvas, codigo, {
+                format: "CODE128",
+                lineColor: "black",
+                width: 2,
+                height: 40,
+                displayValue: true
+            });
+
+            // Convertimos el canvas a una imagen en formato base64
+            const barcodeImage = canvas.toDataURL("image/png");
+
+            // Enviamos los datos y la imagen en base64 al servidor
+            $.ajax({
+                type: 'POST',
+                url: 'http://localhost/barras/guardar.php',
+                data: { nombre: nombre, codigo: codigo, barcodeImage: barcodeImage },
+                dataType: "json",
+                success: function(response) {
+                    console.log("Respuesta del servidor:", response);
+                    alert("Producto guardado y correo enviado exitosamente.");
+                },
+                error: function(error) {
+                    console.error("Error en la solicitud AJAX:", error);
+                    alert("Error al guardar el producto.");
+                }
+            });
+        } else {
+            alert("Por favor, completa ambos campos.");
+        }
+    });
+</script>
+
+    </form>
+    <br>
+    <div id="barcode"></div>
+</div>
+</body>
+
